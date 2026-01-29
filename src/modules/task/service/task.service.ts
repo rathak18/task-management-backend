@@ -95,10 +95,10 @@ export class TaskService {
         nextCursor = nextItem!.id;
       }
 
-      return {
-        data: tasks,
-        nextCursor
-      };
+   return {
+      items: tasks,
+      nextCursor
+    };
     } catch (error) {
       throw new AppError(
         ERROR_MESSAGES.TASK_FETCH_FAILED,

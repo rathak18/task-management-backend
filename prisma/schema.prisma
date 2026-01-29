@@ -5,21 +5,26 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Task {
-  id          String   @id @default(cuid())
+  id          String     @id @default(cuid())
   title       String
   description String?
-  todoistId   String?          // external system id
+  completed   Boolean    @default(false)
+
+  // External sync
+  externalId  String?
   syncStatus  SyncStatus @default(PENDING)
-  createdAt   DateTime @default(now())
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 enum SyncStatus {
@@ -27,6 +32,3 @@ enum SyncStatus {
   SYNCED
   FAILED
 }
-
-
-

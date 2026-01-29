@@ -1,12 +1,12 @@
 import { prisma } from "../../../config/prisma";
-import { CreateTaskDTO } from "../types/task.types";
+import { Prisma } from "@prisma/client";
 
 export class TaskRepository {
 
   /**
    * Create a new task
    */
-  async create(data: CreateTaskDTO) {
+  async create(data: Prisma.TaskCreateInput) {
     return prisma.task.create({
       data
     });
@@ -24,7 +24,7 @@ export class TaskRepository {
   /**
    * Update task by ID
    */
-  async updateById(id: string, data: Partial<CreateTaskDTO>) {
+  async updateById(id: string, data: Partial<Prisma.TaskUpdateInput>) {
     return prisma.task.update({
       where: { id },
       data
@@ -58,7 +58,7 @@ export class TaskRepository {
   /**
    * Bulk create (future-proof for assignment / sync)
    */
-  async createMany(tasks: CreateTaskDTO[]) {
+  async createMany(tasks: Prisma.TaskCreateInput[]) {
     return prisma.task.createMany({
       data: tasks,
       skipDuplicates: true
