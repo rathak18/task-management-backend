@@ -9,6 +9,7 @@ export const ERROR_MESSAGES = {
   TASK_DELETE_FAILED: "Failed to delete task",
   TASK_FETCH_FAILED: "Failed to fetch tasks",
   TASK_DELETED: "Task deleted successfully",
+  TASK_TITLE_REQUIRED: "Task title is required",
 
   // Pagination
   INVALID_LIMIT: "Limit must be between 1 and 100"

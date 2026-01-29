@@ -1,27 +1,58 @@
-import { prisma } from "../../config/prisma";
-import { TodoistClient } from "./todoist.client";
+import { TodoistClient } from "../../common/helpers/todoist.client";
+import { TaskRepository } from "../../modules/task/repository/task.repository";
 
-const client = new TodoistClient(process.env.TODOIST_TOKEN!);
+const todoist = new TodoistClient(process.env.TODOIST_API_TOKEN!);
 
-export async function syncTaskToTodoist(taskId: string) {
-  try {
-    const task = await prisma.task.findUnique({ where: { id: taskId } });
+export class TaskSyncHelper {
+  private repo = new TaskRepository();
+
+  async syncCreate(taskId: string) {
+    const task = await this.repo.findById(taskId);
     if (!task) return;
 
-    const response = await client.createTask(task.title, task.description);
+    try {
+      const external = await todoist.createTask(
+        task.title,
+        task.description ?? undefined
+      );
 
-    await prisma.task.update({
-      where: { id: taskId },
-      data: {
-        todoistId: response.data.id,
+      await this.repo.updateById(taskId, {
+        externalId: external.id,
         syncStatus: "SYNCED"
-      }
-    });
+      });
+    } catch {
+      await this.repo.updateById(taskId, {
+        syncStatus: "FAILED"
+      });
+    }
+  }
 
-  } catch (error) {
-    await prisma.task.update({
-      where: { id: taskId },
-      data: { syncStatus: "FAILED" }
-    });
+  async syncUpdate(taskId: string) {
+    const task = await this.repo.findById(taskId);
+    if (!task || !task.externalId) return;
+
+    try {
+      await todoist.updateTask(task.externalId, {
+        title: task.title,
+        completed: task.completed
+      });
+
+      await this.repo.updateById(taskId, {
+        syncStatus: "SYNCED"
+      });
+    } catch {
+      await this.repo.updateById(taskId, {
+        syncStatus: "FAILED"
+      });
+    }
+  }
+
+  async syncDelete(externalId?: string) {
+    if (!externalId) return;
+    try {
+      await todoist.deleteTask(externalId);
+    } catch {
+      // best-effort delete
+    }
   }
 }
